@@ -45,7 +45,6 @@ def selectRoutines() {
 
 def installed() {
 	log.debug "SHMHelper Installed with settings: ${settings}"
-	log.debug "SHMHelper Installed with settings"
 
 	initialize()
 }
