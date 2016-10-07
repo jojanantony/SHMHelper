@@ -29,18 +29,23 @@ preferences {
 }
 
 def selectRoutines() {
-  dynamicPage(name: "selectRoutines", title: "Select Routines to execute when Smart Home Monitor change modes", install: true, uninstall: true) {
+	dynamicPage(name: "selectRoutines", title: "Select Routines to execute when Smart Home Monitor change modes", install: true, uninstall: true) {
   
-    def actions = location.getHelloHome()?.getPhrases()*.label
-    actions?.sort()
+    	def actions = location.getHelloHome()?.getPhrases()*.label
+    	actions?.sort()
 
-	section("Routines") {
-      input(name: "armRoutine", title: "Arm/Away routine", type: "enum", options: actions, required: false)
-      input(name: "stayRoutine", title: "Arm/Stay routine", type: "enum", options: actions, required: false)
-      input(name: "disarmRoutine", title: "Disarm routine", type: "enum", options: actions, required: false)
-    }
-  }
- 
+		section("Routines") {
+    		input(name: "armRoutine", title: "Arm/Away routine", type: "enum", options: actions, required: false)
+      		input(name: "stayRoutine", title: "Arm/Stay routine", type: "enum", options: actions, required: false)
+      		input(name: "disarmRoutine", title: "Disarm routine", type: "enum", options: actions, required: false)
+    	}
+    	section("Notifications") {
+			input("recipients", "contact", title: "Send notifications to") {
+            	input "phone", "phone", title: "Warn with text message (optional)",
+                	description: "Phone Number", required: false
+        	}    
+  		}
+  	}
 }
 
 def installed() {
@@ -66,9 +71,24 @@ def alarmStatusHandler(evt) {
 	log.debug "SHMHelper  alarm status changed to: ${evt.value}"
   	if (evt.value == 'away') {
     	location.helloHome?.execute(settings.armRoutine)
+        sendMsg("${location.name} is Armed-Away")
   	} else if (evt.value == 'stay') {
     	location.helloHome?.execute(settings.stayRoutine)
+        sendMsg("${location.name} is Armed-Stay")
   	} else if (evt.value == 'off') {
     	location.helloHome?.execute(settings.disarmRoutine)
+        sendMsg("${location.name} is Disarmed")
   	}	
+}
+
+def sendMsg(message) {
+    if (location.contactBookEnabled && recipients) {
+        log.debug "contact book enabled!"
+        sendNotificationToContacts(message, recipients)
+    } else {
+        log.debug "contact book not enabled"
+        if (phone) {
+            sendSms(phone, message)
+        }
+    }
 }
