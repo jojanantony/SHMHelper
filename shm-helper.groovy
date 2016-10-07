@@ -29,19 +29,21 @@ preferences {
 }
 
 def selectRoutines() {
-	dynamicPage(name: "selectRoutines", title: "Select Routines to execute when Smart Home Monitor change modes", install: true, uninstall: true) {
+	dynamicPage(name: "selectRoutines", title: "When Smart Home Monitor change modes", install: true, uninstall: true) {
   
     	def actions = location.getHelloHome()?.getPhrases()*.label
     	actions?.sort()
 
-		section("Routines") {
+		section("Execute Routines?") {
     		input(name: "armRoutine", title: "Arm/Away routine", type: "enum", options: actions, required: false)
       		input(name: "stayRoutine", title: "Arm/Stay routine", type: "enum", options: actions, required: false)
       		input(name: "disarmRoutine", title: "Disarm routine", type: "enum", options: actions, required: false)
     	}
-    	section("Notifications") {
+    	section("Send Notifications?") {
+        	input "pushNotify", "bool", required: false,
+              title: "Send Push Notification?"
 			input("recipients", "contact", title: "Send notifications to") {
-            	input "phone", "phone", title: "Warn with text message (optional)",
+            	input "phone", "phone", title: "Send text message?",
                 	description: "Phone Number", required: false
         	}    
   		}
@@ -82,11 +84,14 @@ def alarmStatusHandler(evt) {
 }
 
 def sendMsg(message) {
+	if (pushNotify) {
+    	sendPush(message)
+    }
     if (location.contactBookEnabled && recipients) {
         log.debug "contact book enabled!"
         sendNotificationToContacts(message, recipients)
     } else {
-        log.debug "contact book not enabled"
+		log.debug "contact book not enabled"
         if (phone) {
             sendSms(phone, message)
         }
