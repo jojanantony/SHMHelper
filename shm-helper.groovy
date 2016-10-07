@@ -40,12 +40,8 @@ def selectRoutines() {
       		input(name: "disarmRoutine", title: "Disarm routine", type: "enum", options: actions, required: false)
     	}
     	section("Send Notifications?") {
-        	input "pushNotify", "bool", required: false,
-              title: "Send Push Notification?"
-			input("recipients", "contact", title: "Send notifications to") {
-            	input "phone", "phone", title: "Send text message?",
-                	description: "Phone Number", required: false
-        	}    
+        	input "pushNotify", "bool", required: false, title: "Send Push Notification?"
+           	input "phone", "phone", title: "Send text message?", description: "Phone Number", required: false    
   		}
   	}
 }
@@ -87,13 +83,7 @@ def sendMsg(message) {
 	if (pushNotify) {
     	sendPush(message)
     }
-    if (location.contactBookEnabled && recipients) {
-        log.debug "contact book enabled!"
-        sendNotificationToContacts(message, recipients)
-    } else {
-		log.debug "contact book not enabled"
-        if (phone) {
-            sendSms(phone, message)
-        }
+    if (phone) {
+		sendSms(phone, message)
     }
 }
